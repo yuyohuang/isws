@@ -1,81 +1,84 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="hHh lpR fFf">
+
+    <!-- Header -->
     <q-header elevated>
       <q-toolbar>
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+        <q-toolbar-title>智慧倉儲管理系統</q-toolbar-title>
 
-        <q-toolbar-title> Quasar App </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
+        <!-- 後端狀態顯示 -->
+        <q-btn
+          dense
+          flat
+          icon="cloud"
+          :color="apiConnected ? 'green' : 'red'"
+          label="後端連線"
+        />
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
+    <!-- 左側 Drawer -->
+    <q-drawer show-if-above v-model="drawerOpen" bordered>
       <q-list>
-        <q-item-label header> Essential Links </q-item-label>
+        <q-item-label header>功能選單</q-item-label>
 
-        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
+        <q-item clickable v-ripple @click="goToPage('/')">
+          <q-item-section avatar><q-icon name="home" /></q-item-section>
+          <q-item-section>首頁</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple @click="goToPage('/order')">
+          <q-item-section avatar><q-icon name="add_shopping_cart" /></q-item-section>
+          <q-item-section>新增訂單</q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
+    <!-- Page Container -->
     <q-page-container>
       <router-view />
     </q-page-container>
+
   </q-layout>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev',
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework',
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev',
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev',
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev',
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev',
-  },
-]
+const drawerOpen = ref(true)
+const apiConnected = ref(false)
+const router = useRouter()
 
-const leftDrawerOpen = ref(false)
-
-function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value
+const checkApi = async () => {
+  try {
+    await axios.get('http://127.0.0.1:8001/api/inventory', { timeout: 2000 })
+    apiConnected.value = true
+  } catch {
+    apiConnected.value = false
+  }
 }
+
+const goToPage = (path) => router.push(path)
+
+onMounted(() => {
+  checkApi()
+  setInterval(checkApi, 5000)
+})
 </script>
+
+<style scoped>
+.q-toolbar-title {
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.q-drawer {
+  background-color: #f9f9f9;
+}
+
+.q-item:hover {
+  background-color: #e0e0e0;
+}
+</style>
